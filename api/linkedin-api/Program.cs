@@ -24,8 +24,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
+    .ReadFrom.Configuration(builder.Configuration)
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -34,6 +33,12 @@ var app = builder.Build();
 
 // Register global exception handler middleware
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+// Add Serilog request logging middleware
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "Handled {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
